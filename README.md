@@ -101,4 +101,212 @@ Vehicle counts are used to calculate a count-weighted average speed across the r
 where:
 
 - \(v_i\) is the average speed recorded for segment \(i\).
-- \(n_i
+- \(n_i\) is the vehicle count for segment \(i\).
+
+This approach gives more weight to segments containing more vehicles.
+
+**Density**
+
+Traffic density is calculated as:
+
+\[
+k=\frac{N}{L}
+\]
+
+where:
+
+- \(N\) is the total vehicle count.
+- \(L\) is the road length, approximately 1.0448 km.
+
+Cycles without vehicles have undefined average speeds and are excluded from subsequent speed averaging and model fitting.
+
+The five repeated runs for each scenario are averaged cycle by cycle to reduce the influence of randomness in individual runs.
+
+### 4.4. Speed–Density Model Fitting
+
+Two models were fitted to examine the relationship between traffic speed and density.
+
+#### Linear model (Greenshields)
+
+The linear model assumes that speed decreases linearly as density increases:
+
+\[
+v = ak+b
+\]
+
+where \(a\) is the slope and \(b\) is the intercept.
+
+The parameters are estimated using linear regression.
+
+#### Nonlinear MacNicholas model
+
+The nonlinear model used in this analysis is:
+
+\[
+v(k)=u_f\frac{k_j^z-k^z}{k_j^z+mk^z}
+\]
+
+where:
+
+- \(v\) is traffic speed.
+- \(k\) is traffic density.
+- \(u_f\) is the free-flow speed.
+- \(k_j\) is the jam density.
+- \(m\) and \(z\) are shape parameters.
+
+The shape parameters are estimated by minimizing the mean squared error between the simulated speeds and the model predictions using SciPy's L-BFGS-B optimization method, subject to:
+
+\[
+m\geq 0,\qquad z\geq 1
+\]
+
+The free-flow speed and jam density are fixed at **60.58 km/h** and **626 vehicles/km**, respectively. [ADD the source or rationale for these fixed values.]
+
+The fitted models are compared visually against the simulated data to assess how well they represent the observed simulation patterns.
+
+## 5. Results
+
+### 5.1. Scenario 1: Congestion Buildup
+
+![Speed against density with linear and MacNicholas fits for Scenario 1](figures/scenario1_speed_density_fit.png)
+
+Scenario 1 exhibits sustained congestion that does not clear during the simulation.
+
+- Density increases throughout the 1,000 cycles, reaching approximately 340 vehicles/km on average.
+- Average speed decreases from approximately 50 km/h in the early stages to roughly 1 km/h.
+- The speed–density relationship shows a sharp decrease at low densities followed by a flatter region near standstill.
+
+The nonlinear MacNicholas model follows this curved pattern more closely than the fitted linear model:
+
+\[
+v=-0.0800k+23.200
+\]
+
+The fitted MacNicholas shape parameters are approximately:
+
+- \(m=27.43\)
+- \(z=1.09\)
+
+These results suggest that the nonlinear model better represents the simulated speed–density pattern for this scenario.
+
+### 5.2. Scenario 2: Congestion and Recovery
+
+![Density and average speed over time for Scenario 2](figures/scenario2_averaged_runs.png)
+
+In Scenario 2, congestion builds and subsequently clears.
+
+- Density reaches a peak of approximately 55 vehicles/km around cycle 200, then decreases with smaller fluctuations later in the simulation.
+- Average speed falls sharply around the density peak and recovers as traffic clears.
+- The fitted MacNicholas model produces shape parameters of approximately \(m=4013.67\) and \(z=2.78\).
+
+However, the scenario does not approach the assumed jam density. Consequently, the fitted shape parameters may be poorly constrained, and the curve should be interpreted cautiously outside the density range represented in the simulation.
+
+### 5.3. Key Findings
+
+The simulated results indicate a nonlinear relationship between traffic speed and density. A straight-line model does not fully capture the sharp speed reduction and flatter low-speed region seen in Scenario 1.
+
+Averaging repeated simulation runs also produces a clearer overall pattern than examining a single run.
+
+These findings describe the behaviour of the simulation model; they should not be interpreted as direct measurements or validated predictions of real-world traffic conditions.
+
+The related 2023 publication examines vehicle composition and traffic-light timing using agent-based modelling. The notebooks in this repository extend the selected simulation-output analysis by fitting a nonlinear MacNicholas speed–density model.
+
+## 6. Reproducibility
+
+### 6.1. Repository Structure
+
+```text
+.
+├── gama_model/          # GAMA model files and permitted supporting inputs
+├── data/
+│   ├── raw/             # Raw simulation CSV files
+│   └── processed/       # Processed analysis outputs
+├── notebooks/           # Jupyter notebooks for each analysis
+├── figures/             # Figures used in this README
+├── requirements.txt     # Python dependencies
+└── README.md
+```
+
+The repository contains a selected portion of the research workflow. Not every original project file or simulation input is included.
+
+### 6.2. Run the Python Analysis
+
+**Prerequisites:**
+
+- Python 3
+- Jupyter Notebook
+- The Python packages listed in `requirements.txt`
+
+Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Launch Jupyter Notebook from the repository root:
+
+```bash
+jupyter notebook
+```
+
+Open the relevant notebook under `notebooks/` and execute the cells using **Kernel → Restart & Run All**.
+
+The notebooks read the required CSV files from `data/` and write processed outputs there. Ensure the necessary input files are available before running the analysis.
+
+### 6.3. Re-run the GAMA Simulation
+
+To reproduce the simulation outputs:
+
+1. Install the GAMA Platform. [ADD the GAMA version used.]
+2. Open the model file in `gama_model/`. [ADD the exact model filename.]
+3. Select the relevant experiment. [ADD the experiment name.]
+4. Configure the scenario parameters as documented in the model.
+5. Run the simulation for 1,000 cycles, repeating each scenario five times.
+6. Export the outputs as CSV files in the expected format.
+
+Because the model includes stochastic behaviour, individual runs may differ. Repeated-run averages should exhibit broadly similar patterns when the same model configuration is used.
+
+### 6.4. Data and Scope
+
+The CSV files are generated by my own simulation model and are **not real traffic measurements**.
+
+Only the selected model files, inputs, outputs, and analyses required to understand the work are included. Any omitted large inputs or supporting files should be obtained or generated according to the instructions provided in the repository.
+
+## 7. Limitations and Future Improvements
+
+### Limitations
+
+- **Simulated data:** Traffic demand is configured through scenario settings because measured traffic data was unavailable. The results describe model behaviour rather than validated real-world conditions.
+- **Simplified road network:** The model focuses on a road segment of approximately 1 km with a single traffic signal.
+- **Fixed parameters:** Free-flow speed and jam density are fixed rather than estimated independently from each scenario.
+- **Limited density range in Scenario 2:** The simulated densities remain far below the assumed jam density, making the nonlinear shape parameters less reliably constrained.
+- **Limited repeated runs:** Five runs per scenario reveal broad patterns but provide limited information about uncertainty.
+- **Visual model comparison:** The current comparison is primarily visual and does not yet report numerical goodness-of-fit metrics.
+- **Vehicle representation:** The model represents four-wheeled vehicle categories and does not include motorcycles or other two-wheeled vehicles.
+
+### Future Improvements
+
+Potential extensions include:
+
+- Calculate numerical goodness-of-fit metrics such as RMSE and \(R^2\) for both models.
+- Estimate free-flow speed and jam density rather than fixing them in advance.
+- Visualize variation across repeated runs using uncertainty bands.
+- Calibrate and validate the simulation against real traffic counts.
+- Extend the model to include motorcycles and other two-wheeled vehicles.
+- Investigate a wider range of traffic-demand and traffic-light configurations.
+
+## Related Publications
+
+1. Shaharuddin, R. A., & Misro, M. Y. (2023). *Controlling Traffic Congestion in Urbanised City: A Framework Using Agent-Based Modelling and Simulation Approach.* ISPRS International Journal of Geo-Information, 12(6), 226. [https://doi.org/10.3390/ijgi12060226](https://doi.org/10.3390/ijgi12060226)
+
+2. Shaharuddin, R. A., & Misro, M. Y. (2021). *Traffic Simulation Using Agent-Based Modelling.* AIP Conference Proceedings, 2423, 020035.
+
+The 2023 paper investigates vehicle composition and traffic-light timing under peak and off-peak traffic conditions using agent-based modelling and a linear (Greenshields) speed–density relationship. The notebooks shared here additionally fit a nonlinear MacNicholas model to selected simulation outputs.
+
+---
+
+## Contact
+
+**Raihanah Adawiyah Shaharuddin**
+
+Email: [raihanahadwyh@gmail.com](mailto:raihanahadwyh@gmail.com)
