@@ -223,7 +223,6 @@ The related 2023 publication examines vehicle composition and traffic-light timi
 │   └── processed/       # Processed analysis outputs
 ├── notebooks/           # Jupyter notebooks for each analysis
 ├── figures/             # Figures used in this README
-├── requirements.txt     # Python dependencies
 └── README.md
 ```
 
