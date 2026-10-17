@@ -46,7 +46,7 @@ Because measured traffic data was unavailable for this study, the analysis uses 
 | Data analysis | Averaged repeated simulation runs, fitted and compared speed–density models, and generated visualizations. |
 | Research communication | Documented the methodology and findings in peer-reviewed publications and prepared analysis notebooks for readers. |
 
-Research was supervised by **Dr Md Yushalify Misro**, Universiti Sains Malaysia.
+Research was supervised by **Assoc. Prof. Ts. Dr. Md Yushalify Misro**, Universiti Sains Malaysia.
 
 ## 3. Tools and Technologies
 
